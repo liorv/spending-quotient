@@ -13,5 +13,5 @@ public interface SQService extends RemoteService
   
   GameHistoryDO getHistory(String uid);
   
-  void addGame(String uid, double sq);
+  void addGame(String uid, int sq);
 }

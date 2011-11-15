@@ -1,18 +1,14 @@
 package com.lior.sq.client;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.extjs.gxt.ui.client.event.ButtonEvent;
 import com.extjs.gxt.ui.client.event.SelectionListener;
 import com.extjs.gxt.ui.client.widget.ContentPanel;
 import com.extjs.gxt.ui.client.widget.HorizontalPanel;
+import com.extjs.gxt.ui.client.widget.Info;
 import com.extjs.gxt.ui.client.widget.LayoutContainer;
 import com.extjs.gxt.ui.client.widget.VerticalPanel;
 import com.extjs.gxt.ui.client.widget.Viewport;
 import com.extjs.gxt.ui.client.widget.button.Button;
-import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
-import com.extjs.gxt.ui.client.widget.grid.ColumnModel;
 import com.extjs.gxt.ui.client.widget.layout.FitLayout;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -28,264 +24,273 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
-public class SQ implements EntryPoint
-{
-  /**
-   * Create a remote service to talk to the server-side service.
-   */
-  private final SQServiceAsync sqService = GWT.create(SQService.class);
+public class SQ implements EntryPoint {
+	/**
+	 * Create a remote service to talk to the server-side service.
+	 */
+	private final SQServiceAsync sqService = GWT.create(SQService.class);
 
-  static protected Double computeSQ(long income, long unspent) {
-    double sq = 240 + 35 * (0.00137 * income - Math.log((double) unspent));
-    return Double.valueOf(sq);
-  }
+	static protected Integer computeSQ(long income, long unspent) {
+		double sq = 240 + 35 * (0.00137 * income - Math.log((double) unspent));
+		return Integer.valueOf((int) sq);
+	}
 
-  protected HistoryGrid dataTable;
+	protected HistoryGrid dataTable;
+	
+	private HistoryChart dataChart;
 
-  protected TextBox incomeInput = new TextBox();
+	protected TextBox incomeInput = new TextBox();
 
-  protected TextBox unspentInput = new TextBox();
+	protected TextBox unspentInput = new TextBox();
 
-  protected TextBox uidInput = new TextBox();
+	protected TextBox uidInput = new TextBox();
 
-  ColumnModel cm = configureCols();
+	HTML sqLabel = new HTML();
 
-  HTML sqLabel = new HTML();
+	int dim = 74;
+	Image rankPic;
 
-  int dim = 74;
-  Image rankPic;
-  
-  int sq = 0;
+	int sq = 0;
 
-  private AsyncCallback<GameHistoryDO> getHistoryHandler =
-      new AsyncCallback<GameHistoryDO>() {
-        @Override
-        public void onSuccess(GameHistoryDO h) {
-          if (h == null) h = new GameHistoryDO();
-          dataTable.update(h);
-          sq = (int) h.getMySQ();
-          sqLabel.setHTML("<font size=\"20\">" + sq + "</font>");
-          
-          int SILVER = 1;
-          int GOLD = 2;
-          int PLAT = 3;
-          int DIA = 4;
-          int MASTER = 5;
-          int GM = 6;
-          /*
-           * =IF(D2<47.5,"Bronze", IF(D2<52.5,"Silver", IF(D2<59,"Gold",
-           * IF(D2<65,"Platnium" ,IF(D2<72.5,"Diamond", IF(D2<82,"Master",
-           * "GrandMaster"))))))
-           */
-          int i = 0;
-          if (sq >= 47.5) i = SILVER;
-          if (sq >= 52.5) i = GOLD;
-          if (sq >= 59) i = PLAT;
-          if (sq >= 65) i = DIA;
-          if (sq >= 72.5) i = MASTER;
-          if (sq >= 82) i = GM;
+	private AsyncCallback<GameHistoryDO> getHistoryHandler = new AsyncCallback<GameHistoryDO>() {
+		@Override
+		public void onSuccess(GameHistoryDO h) {
+			if (h == null)
+				h = new GameHistoryDO();
+			dataTable.update(h);
+			dataChart.update(h);
+			sq = (int) h.getMySQ();
+			sqLabel.setHTML("<font size=\"20\">" + sq + "</font>");
 
-          rankPic.setUrlAndVisibleRect("images/ranks-small.png", i * dim, 7, dim, dim);
-        }
+			int SILVER = 1;
+			int GOLD = 2;
+			int PLAT = 3;
+			int DIA = 4;
+			int MASTER = 5;
+			int GM = 6;
+			/*
+			 * =IF(D2<47.5,"Bronze", IF(D2<52.5,"Silver", IF(D2<59,"Gold",
+			 * IF(D2<65,"Platnium" ,IF(D2<72.5,"Diamond", IF(D2<82,"Master",
+			 * "GrandMaster"))))))
+			 */
+			int i = 0;
+			if (sq >= 47.5)
+				i = SILVER;
+			if (sq >= 52.5)
+				i = GOLD;
+			if (sq >= 59)
+				i = PLAT;
+			if (sq >= 65)
+				i = DIA;
+			if (sq >= 72.5)
+				i = MASTER;
+			if (sq >= 82)
+				i = GM;
 
-        @Override
-        public void onFailure(Throwable caught) {}
-      };
+			rankPic.setUrlAndVisibleRect("images/ranks-small.png", i * dim, 7,
+					dim, dim);
+			Info.display("info", "getHistory::OK");
+		}
 
-  static public Widget labeledWidget(String text, Widget[] fields) {
-    FlexTable table = new FlexTable();
-    table.setWidget(0, 0, new HTML(text));
-    for (int i = 0; i < fields.length; i++)
-      table.setWidget(0, i + 1, fields[i]);
-    return table;
-  }
+		@Override
+		public void onFailure(Throwable caught) {
+			Info.display("info", "getHistory::BAD");
+		}
 
-  public static Widget vGap(int gap) {
-    Label l = new Label(" ");
-    l.setPixelSize(10, gap);
-    return l;
-  }
+	};
 
-  public static Widget hGap(int gap) {
-    Label l = new Label(" ");
-    l.setPixelSize(gap, 10);
-    return l;
-  }
+	static public Widget labeledWidget(String text, Widget[] fields) {
+		FlexTable table = new FlexTable();
+		table.setWidget(0, 0, new HTML(text));
+		for (int i = 0; i < fields.length; i++)
+			table.setWidget(0, i + 1, fields[i]);
+		return table;
+	}
 
-  public static Widget hGap() {
-    Label l = new Label("     ");
-    l.setPixelSize(100, 10);
-    return l;
-  }
+	public static Widget vGap(int gap) {
+		Label l = new Label(" ");
+		l.setPixelSize(10, gap);
+		return l;
+	}
 
-  static private ColumnModel configureCols() {
-    List<ColumnConfig> configs = new ArrayList<ColumnConfig>();
+	public static Widget hGap(int gap) {
+		Label l = new Label(" ");
+		l.setPixelSize(gap, 10);
+		return l;
+	}
 
-    ColumnConfig column = new ColumnConfig();
-    column.setId(GameInfo.IDX);
-    column.setHeader(GameInfo.IDX);
-    column.setWidth(200);
-    column.setRowHeader(true);
-    configs.add(column);
+	public static Widget hGap() {
+		Label l = new Label("     ");
+		l.setPixelSize(100, 10);
+		return l;
+	}
 
-    column = new ColumnConfig();
-    column.setId(GameInfo.SQ);
-    column.setHeader(GameInfo.SQ);
-    column.setWidth(200);
-    configs.add(column);
+	private Widget createLoginTitlePanel() {
+		Button goButton = new Button("Load");
+		goButton.addSelectionListener(new SelectionListener<ButtonEvent>() {
+			@Override
+			public void componentSelected(ButtonEvent ce) {
+				sqService.getHistory(uidInput.getText(), getHistoryHandler);
+			}
+		});
 
-    return new ColumnModel(configs);
-  }
+		AbsolutePanel panel = new AbsolutePanel();
+		panel.setSize("600px", "140px");
+		Widget logo = new HTML(
+				"<font color='red' size='6'>Spending Quotient: </font>");
+		Widget[] fields = { uidInput, goButton };
+		Widget input = labeledWidget("id:  ", fields);
 
-  private Widget createLoginTitlePanel() {
-    Button goButton = new Button("Load");
-    goButton.addSelectionListener(new SelectionListener<ButtonEvent>() {
-      @Override
-      public void componentSelected(ButtonEvent ce) {
-        sqService.getHistory(uidInput.getText(), getHistoryHandler);
-      }
-    });
+		Widget rank = createRankPanel();
+		sqLabel = new HTML("<font size=\"20\">0</font>");
 
-    AbsolutePanel panel = new AbsolutePanel();
-    panel.setSize("600px", "140px");
-    Widget logo =
-        new HTML("<font color='red' size='6'>Spending Quotient: </font>");
-    Widget[] fields = { uidInput, goButton };
-    Widget input = labeledWidget("id:  ", fields);
+		panel.add(logo, 10, 10);
 
-    Widget rank = createRankPanel();
-    sqLabel = new HTML("<font size=\"20\">0</font>");
+		panel.add(input, 10, 60);
+		panel.add(rank, 320, 15);
+		panel.add(sqLabel, 400, 15);
 
-    panel.add(logo, 10, 10);
+		return panel;
+	}
 
-    panel.add(input, 10, 60);
-    panel.add(rank, 320, 15);
-    panel.add(sqLabel, 400, 15);
+	private Widget createRankPanel() {
+		int SILVER = 1;
+		int GOLD = 2;
+		int PLAT = 3;
+		int DIA = 4;
+		int MASTER = 5;
+		int GM = 6;
+		/*
+		 * =IF(D2<47.5,"Bronze", IF(D2<52.5,"Silver", IF(D2<59,"Gold",
+		 * IF(D2<65,"Platnium" ,IF(D2<72.5,"Diamond", IF(D2<82,"Master",
+		 * "GrandMaster"))))))
+		 */
+		int i = 0;
+		if (sq >= 47.5)
+			i = SILVER;
+		if (sq >= 52.5)
+			i = GOLD;
+		if (sq >= 59)
+			i = PLAT;
+		if (sq >= 65)
+			i = DIA;
+		if (sq >= 72.5)
+			i = MASTER;
+		if (sq >= 82)
+			i = GM;
 
-    return panel;
-  }
+		rankPic = new Image("images/ranks-small.png", i * dim, 7, dim, dim);
+		return rankPic;
+	}
 
-  private Widget createRankPanel() {
-    int SILVER = 1;
-    int GOLD = 2;
-    int PLAT = 3;
-    int DIA = 4;
-    int MASTER = 5;
-    int GM = 6;
-    /*
-     * =IF(D2<47.5,"Bronze", IF(D2<52.5,"Silver", IF(D2<59,"Gold",
-     * IF(D2<65,"Platnium" ,IF(D2<72.5,"Diamond", IF(D2<82,"Master",
-     * "GrandMaster"))))))
-     */
-    int i = 0;
-    if (sq >= 47.5) i = SILVER;
-    if (sq >= 52.5) i = GOLD;
-    if (sq >= 59) i = PLAT;
-    if (sq >= 65) i = DIA;
-    if (sq >= 72.5) i = MASTER;
-    if (sq >= 82) i = GM;
+	private LayoutContainer createDataDisplayPanel() {
+		HorizontalPanel panel = new HorizontalPanel();
 
-    rankPic = new Image("images/ranks-small.png", i * dim, 7, dim, dim);
-    return rankPic;
-  }
+		GameHistoryDO initialHistory = new GameHistoryDO();
+		dataTable = new HistoryGrid(initialHistory);
+		dataChart = new HistoryChart(initialHistory);
+		panel.add(hGap(20));
+		panel.add(dataTable);
+		panel.add(hGap(20));
+		panel.add(dataChart);
+		return panel;
+	}
 
-  private LayoutContainer createDataDisplayPanel() {
-    HorizontalPanel panel = new HorizontalPanel();
+	private LayoutContainer createInputPanel() {
+		Button addButton = new Button("Add Score");
+		addButton.addSelectionListener(new SelectionListener<ButtonEvent>() {
+			int sq;
 
-    dataTable = new HistoryGrid(new GameStore(new GameHistoryDO()), cm);
-    panel.add(hGap(20));
-    panel.add(dataTable);
-    return panel;
-  }
+			@Override
+			public void componentSelected(ButtonEvent ce) {
+				try {
+					long unspent = Long.valueOf(unspentInput.getText());
+					long income = Long.valueOf(incomeInput.getText());
+					sq = computeSQ(income, unspent);
+				} catch (Exception e) {
+					return;
+				}
+				sqService.addGame(uidInput.getText(), sq,
+						new AsyncCallback<Void>() {
 
-  private LayoutContainer createInputPanel() {
-    Button addButton = new Button("Add Score");
-    addButton.addSelectionListener(new SelectionListener<ButtonEvent>() {
-      double sq;
+							@Override
+							public void onFailure(Throwable caught) {
+								Info.display("info", "addGame::BAD");
+							}
 
-      @Override
-      public void componentSelected(ButtonEvent ce) {
-        try {
-          long unspent = Long.valueOf(unspentInput.getText());
-          long income = Long.valueOf(incomeInput.getText());
-          sq = computeSQ(income, unspent);
-        }
-        catch (Exception e) {
-          return;
-        }
-        sqService.addGame(uidInput.getText(), sq, new AsyncCallback<Void>() {
+							@Override
+							public void onSuccess(Void v) {
+								sqService.getHistory(uidInput.getText(),
+										getHistoryHandler);
+								Info.display("info", "addGame::OK");
+							}
+						});
+			}
+		});
 
-          @Override
-          public void onFailure(Throwable caught) {}
+		Button clearButton = new Button("CLEAR");
+		clearButton.addSelectionListener(new SelectionListener<ButtonEvent>() {
+			@Override
+			public void componentSelected(ButtonEvent ce) {
+				sqService.clear(uidInput.getText(), new AsyncCallback<Void>() {
+					@Override
+					public void onFailure(Throwable caught) {
+					}
 
-          @Override
-          public void onSuccess(Void v) {
-            sqService.getHistory(uidInput.getText(), getHistoryHandler);
-          }
-        });
-      }
-    });
+					@Override
+					public void onSuccess(Void result) {
+					  GameHistoryDO h = new GameHistoryDO();
+						dataTable.update(h);
+						dataChart.update(h);
+					}
+				});
+			}
+		});
 
-    Button clearButton = new Button("CLEAR");
-    clearButton.addSelectionListener(new SelectionListener<ButtonEvent>() {
-      @Override
-      public void componentSelected(ButtonEvent ce) {
-        sqService.clear(uidInput.getText(), new AsyncCallback<Void>() {
-          @Override
-          public void onFailure(Throwable caught) {}
+		HorizontalPanel panel = new HorizontalPanel();
+		panel.add(hGap(20));
+		panel.add(new HTML("Collection Rate: "));
+		panel.add(incomeInput);
+		panel.add(hGap(20));
+		panel.add(new HTML("Average Unspent: "));
+		panel.add(unspentInput);
+		panel.add(addButton);
+		panel.add(hGap(100));
+		panel.add(clearButton);
+		return panel;
+	}
 
-          @Override
-          public void onSuccess(Void result) {
-            dataTable.update(new GameHistoryDO());
-          }
-        });
-      }
-    });
+	private LayoutContainer createCompositeViewPanel() {
+		VerticalPanel container = new VerticalPanel();
+		container.add(createLoginTitlePanel());
+		container.add(createDataDisplayPanel());
+		container.add(vGap(20));
+		container.add(createInputPanel());
+		container.setBorders(true);
+		return container;
+	}
 
-    HorizontalPanel panel = new HorizontalPanel();
-    panel.add(hGap(20));
-    panel.add(new HTML("Collection Rate: "));
-    panel.add(incomeInput);
-    panel.add(hGap(20));
-    panel.add(new HTML("Average Unspent: "));
-    panel.add(unspentInput);
-    panel.add(addButton);
-    panel.add(hGap(100));
-    panel.add(clearButton);
-    return panel;
-  }
+	public void onModuleLoad() {
+		if (Document.get() != null) {
+			Document.get().setTitle("SQ-LV");
+		}
+		// MessageBox.info("Message", "Hello World!!", null);
 
-  private LayoutContainer createCompositeViewPanel() {
-    VerticalPanel container = new VerticalPanel();
-    container.add(createLoginTitlePanel());
-    container.add(createDataDisplayPanel());
-    container.add(vGap(20));
-    container.add(createInputPanel());
-    container.setBorders(true);
-    return container;
-  }
+		ContentPanel cp = new ContentPanel();
+		cp.setHeading("BLAH");
+		cp.setSize("100%", "100%");
+		cp.setPosition(10, 10);
+		cp.setCollapsible(true);
+		cp.setFrame(true);
+		cp.setBodyStyle("backgroundColor: white;");
+		cp.setIconStyle("tree-folder-open");
+		cp.setLayout(new FitLayout());
+		cp.setTopComponent(createCompositeViewPanel());
+		Viewport vp = new Viewport();
+		vp.add(cp);
+		cp.setSize("100%", "100%");
 
-  public void onModuleLoad() {
-    if (Document.get() != null) {
-      Document.get().setTitle("SQ-LV");
-    }
-    // MessageBox.info("Message", "Hello World!!", null);
-
-    ContentPanel cp = new ContentPanel();
-    cp.setHeading("BLAH");
-    cp.setSize("100%", "100%");
-    cp.setPosition(10, 10);
-    cp.setCollapsible(true);
-    cp.setFrame(true);
-    cp.setBodyStyle("backgroundColor: white;");
-    cp.setIconStyle("tree-folder-open");
-    cp.setLayout(new FitLayout());
-    cp.setTopComponent(createCompositeViewPanel());
-    Viewport vp = new Viewport();
-    vp.add(cp);
-    cp.setSize("100%", "100%");
-
-    RootPanel.get().add(vp);
-    cp.layout();
-  }
+		RootPanel.get().add(vp);
+		cp.layout();
+	}
 }

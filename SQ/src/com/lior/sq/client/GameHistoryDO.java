@@ -16,21 +16,21 @@ public class GameHistoryDO implements Serializable, DataObject
   String id;
   
   @Persistent
-  Vector<Double> sqArr;
+  Vector<Integer> sqArr;
   
   public GameHistoryDO() {
-    sqArr = new Vector<Double>();
+    sqArr = new Vector<Integer>();
   }
   
-  public GameHistoryDO(Vector<Double> sqArr) {
+  public GameHistoryDO(Vector<Integer> sqArr) {
     this.sqArr = sqArr;
   }
 
-  public Vector<Double> getSqArr() {
+  public Vector<Integer> getSqArr() {
     return sqArr;
   }
 
-  public void setSqArr(Vector<Double> sqArr) {
+  public void setSqArr(Vector<Integer> sqArr) {
     this.sqArr = sqArr;
   }
 
@@ -42,7 +42,7 @@ public class GameHistoryDO implements Serializable, DataObject
     this.id = id;
   }
 
-  public double getMySQ() {
+  public int getMySQ() {
     double sum = 0;
     int size = sqArr.size();
     int n = (size > 10) ? 10 : size;
@@ -50,6 +50,6 @@ public class GameHistoryDO implements Serializable, DataObject
       double d = sqArr.get(i).doubleValue();
       sum += d;
     }
-    return (sum / n);
+    return (int) (sum / n);
   }
 }

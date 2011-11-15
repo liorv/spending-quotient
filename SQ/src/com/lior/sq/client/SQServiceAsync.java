@@ -4,7 +4,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 
 public interface SQServiceAsync
 {
-  void addGame(String uid, double sq, AsyncCallback<Void> callback);
+  void addGame(String uid, int sq, AsyncCallback<Void> callback);
 
   void getHistory(String id, AsyncCallback<GameHistoryDO> callback);
 

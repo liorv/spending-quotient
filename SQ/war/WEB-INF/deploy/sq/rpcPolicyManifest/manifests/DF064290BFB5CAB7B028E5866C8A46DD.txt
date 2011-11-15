@@ -1,0 +1,2 @@
+serviceClass: com.lior.sq.client.SQService
+path: 5A9E219D35A4FEDCAE877F3C3ACE9CCF.gwt.rpc

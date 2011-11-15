@@ -17,7 +17,7 @@ public class SQServiceImpl implements SQService
   SQServiceImpl() {}
 
   @Override
-  public void addGame(String uid, double sq) {
+  public void addGame(String uid, int sq) {
     try {
       GameHistoryDO history = JDOUtils.find(GameHistoryDO.class, uid);
       if (history == null) {
