@@ -1,4 +1,2 @@
 # Module sq
 # RPC service class, partial path of RPC policy file
-com.google.gwt.logging.shared.RemoteLoggingService, CE18CF7C7088FCD25ACC685CF4BAE60B.gwt.rpc
-com.lior.sq.client.SQService, 5A9E219D35A4FEDCAE877F3C3ACE9CCF.gwt.rpc
