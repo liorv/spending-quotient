@@ -1,11 +1,9 @@
 package com.lior.sq.server;
 
-import java.util.Vector;
-
+import java.util.Collections;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
-import com.lior.jdo.JDOAction;
-import com.lior.jdo.JDOSession;
 import com.lior.jdo.JDOUtils;
 import com.lior.sq.SQException;
 import com.lior.sq.client.GameHistoryDO;
@@ -17,7 +15,7 @@ public class SQServiceImpl implements SQService
   SQServiceImpl() {}
 
   @Override
-  public void addGame(String uid, int sq) {
+  public GameHistoryDO addGame(String uid, int sq) {
     try {
       GameHistoryDO history = JDOUtils.find(GameHistoryDO.class, uid);
       if (history == null) {
@@ -26,8 +24,10 @@ public class SQServiceImpl implements SQService
       }
       history.getSqArr().add(sq);
       JDOUtils.persist(history);
+      return history;
     }
     catch (SQException e) {
+      return new GameHistoryDO();
     }
   }
 
@@ -53,34 +53,29 @@ public class SQServiceImpl implements SQService
     return h;
   }
 
-  private class ClearByIdAction extends JDOAction
-  {
-    String uid;
-
-    public ClearByIdAction(String id) {
-      uid = id;
-    }
-
-    @Override
-    public void doIt(JDOSession session) throws SQException {
-      Vector<String> oids = new Vector<String>();
-      oids.add(uid);
-      session.clear(GameHistoryDO.class, oids);
-    }
-
-    @Override
-    public boolean isTransactional() {
-      return true;
-    }
-  };
-
   @Override
-  public void clear(String uid) {
+  public GameHistoryDO clear(String uid, List<Integer> indices) {
+    Collections.sort(indices);
+
     try {
-      ClearByIdAction act = new ClearByIdAction(uid);
-      act.perform();
+      GameHistoryDO h = registerIfUndefined(uid);
+      if (indices.size() < 1) return h;
+
+      if (indices.size() >= h.getSqArr().size()) {
+        GameHistoryDO retval = new GameHistoryDO();
+        retval.setId(h.getId());
+        JDOUtils.persist(retval);
+        return retval;
+      }
+
+      for (int i = indices.size() - 1; i >= 0; i--) {
+        h.getSqArr().remove(indices.get(i) - 1);
+      }
+      JDOUtils.persist(h);
+      return h;
     }
     catch (SQException e) {
+      return new GameHistoryDO();
     }
   }
 }

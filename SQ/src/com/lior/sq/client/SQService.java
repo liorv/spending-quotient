@@ -1,5 +1,7 @@
 package com.lior.sq.client;
 
+import java.util.List;
+
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -9,9 +11,9 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 @RemoteServiceRelativePath("springGwtServices/sqService")
 public interface SQService extends RemoteService
 {
-  void clear(String uid);
+  GameHistoryDO clear(String uid, List<Integer> indices);
   
   GameHistoryDO getHistory(String uid);
   
-  void addGame(String uid, int sq);
+  GameHistoryDO addGame(String uid, int sq);
 }

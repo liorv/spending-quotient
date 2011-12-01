@@ -1,5 +1,6 @@
 package com.lior.sq.client;
 
+import java.util.ArrayList;
 import com.extjs.gxt.ui.client.event.ButtonEvent;
 import com.extjs.gxt.ui.client.event.SelectionListener;
 import com.extjs.gxt.ui.client.widget.ContentPanel;
@@ -210,21 +211,7 @@ public class SQ implements EntryPoint {
 				} catch (Exception e) {
 					return;
 				}
-				sqService.addGame(uidInput.getText(), sq,
-						new AsyncCallback<Void>() {
-
-							@Override
-							public void onFailure(Throwable caught) {
-								Info.display("info", "addGame::BAD");
-							}
-
-							@Override
-							public void onSuccess(Void v) {
-								sqService.getHistory(uidInput.getText(),
-										getHistoryHandler);
-								Info.display("info", "addGame::OK");
-							}
-						});
+				sqService.addGame(uidInput.getText(), sq, getHistoryHandler);
 			}
 		});
 
@@ -232,28 +219,24 @@ public class SQ implements EntryPoint {
 		clearButton.addSelectionListener(new SelectionListener<ButtonEvent>() {
 			@Override
 			public void componentSelected(ButtonEvent ce) {
-				sqService.clear(uidInput.getText(), new AsyncCallback<Void>() {
-					@Override
-					public void onFailure(Throwable caught) {
-					}
-
-					@Override
-					public void onSuccess(Void result) {
-					  GameHistoryDO h = new GameHistoryDO();
-						dataTable.update(h);
-						dataChart.update(h);
-					}
-				});
+			  int[] indices = dataTable.getSelectedIndices();
+			  ArrayList<Integer> idxList = new ArrayList<Integer>();
+			  for(int i=0; i<indices.length; i++)
+			  idxList.add(Integer.valueOf(indices[i]));
+				sqService.clear(uidInput.getText(), idxList, getHistoryHandler);
 			}
 		});
 
 		HorizontalPanel panel = new HorizontalPanel();
-		panel.add(hGap(20));
-		panel.add(new HTML("Collection Rate: "));
-		panel.add(incomeInput);
+		
 		panel.add(hGap(20));
 		panel.add(new HTML("Average Unspent: "));
 		panel.add(unspentInput);
+		
+		panel.add(hGap(20));
+    panel.add(new HTML("Collection Rate: "));
+    panel.add(incomeInput);
+		
 		panel.add(addButton);
 		panel.add(hGap(100));
 		panel.add(clearButton);

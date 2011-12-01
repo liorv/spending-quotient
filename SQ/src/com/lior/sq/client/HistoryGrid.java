@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.extjs.gxt.ui.client.widget.ContentPanel;
+import com.extjs.gxt.ui.client.widget.grid.CheckBoxSelectionModel;
 import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
 import com.extjs.gxt.ui.client.widget.grid.ColumnModel;
 import com.extjs.gxt.ui.client.widget.grid.Grid;
@@ -14,7 +15,10 @@ public class HistoryGrid extends ContentPanel
   static private ColumnModel configureCols() {
     List<ColumnConfig> configs = new ArrayList<ColumnConfig>();
 
+    CheckBoxSelectionModel<GameInfo> sm = new CheckBoxSelectionModel<GameInfo>();
+    configs.add(sm.getColumn());
     ColumnConfig column = new ColumnConfig();
+    
     column.setId(GameInfo.IDX);
     column.setHeader(GameInfo.IDX);
     column.setWidth(200);
@@ -48,5 +52,15 @@ public class HistoryGrid extends ContentPanel
   public void update(GameHistoryDO history) {
     store = new GameStore(history);
     grid.reconfigure(store, cm);
+  }
+
+  public int[] getSelectedIndices() {
+    List<GameInfo> games = grid.getSelectionModel().getSelectedItems();
+    int[] retval = new int[games.size()];
+    int i = 0;
+    for(GameInfo o : games) {
+      retval[i++] = o.getIndex();  
+    }
+    return retval;
   }
 }

@@ -27,4 +27,6 @@ class GameInfo extends BaseDot
     Double sq = (Double) get(SQ);
     return sq.doubleValue();
   }
+  
+
 }
